@@ -15,6 +15,10 @@
 - 🔧 تثبيت تلقائي من الكود المصدري
 - 🛡️ تنفيذ آمن للأوامر مع معالجة الأخطاء
 - ⚡ أوامر مختصرة وسهلة الاستخدام
+- 📊 **إظهار جميع المخرجات في الوقت الفعلي**
+- 📝 **رسائل تفصيلية لكل عملية**
+- 📈 **معلومات التقدم والحالة**
+- 📋 **ملخص شامل للعمليات**
 
 </div>
 
@@ -32,6 +36,7 @@
   - [File Downloads](#file-downloads)
   - [Source Code Installation](#source-code-installation)
   - [System Operations](#system-operations)
+- [Output & Display Features](#-output--display-features)
 - [Examples](#examples)
 - [Advanced Usage](#advanced-usage)
 - [Troubleshooting](#troubleshooting)
@@ -77,6 +82,26 @@ Automatically detects and installs from:
 - `CMakeLists.txt` (CMake build)
 - `install.sh` / `install.py`
 - Custom build scripts
+
+### 📊 Real-time Output & Detailed Information
+- **Live Output**: See all command output in real-time as it happens
+- **Detailed Messages**: Every operation shows:
+  - Command being executed
+  - Working directory
+  - Progress indicators
+  - Success/failure status
+- **Progress Tracking**: 
+  - File download progress bars
+  - Repository clone progress
+  - Installation step indicators
+- **Information Display**:
+  - Repository sizes after cloning
+  - File sizes after download
+  - Directory contents when needed
+  - Installation method detection results
+- **Operation Summary**: 
+  - Header with system information at start
+  - Summary with operation count and results at end
 
 ---
 
@@ -230,14 +255,46 @@ python3 Fast-command-prompt-Short-version.py -gh-install https://github.com/user
 ```
 
 **How it works:**
-1. Clones the repository (or updates if exists)
-2. Automatically detects installation method:
+1. Shows detailed information about the repository (URL, target path, size)
+2. Clones the repository with progress indicators (or updates if exists)
+3. Displays repository size after cloning
+4. Scans and shows all detected installation methods
+5. Automatically detects and uses installation method:
    - `setup.py` → `python3 setup.py install`
    - `requirements.txt` → `pip3 install -r requirements.txt`
    - `Makefile` → `make && sudo make install`
    - `CMakeLists.txt` → `cmake .. && make && sudo make install`
    - `install.sh` → `bash install.sh`
    - Other install scripts
+6. Shows detailed output for each installation step
+
+**Output Example:**
+```
+============================================================
+[*] GitHub Clone & Install Mode
+[*] Repositories will be saved to: /path/to/repos
+============================================================
+
+[*] Processing repository: awesome-tool
+[*] URL: https://github.com/user/awesome-tool
+[*] Target path: /path/to/repos/awesome-tool
+============================================================
+
+[*] Cloning repository: awesome-tool from https://github.com/user/awesome-tool...
+[Shows git clone progress...]
+
+[+] Repository cloned! Size: 2.45 MB
+
+[*] Scanning for installation methods...
+[*] ✓ Found setup.py
+[*] ✓ Found requirements.txt
+
+[*] Found 2 installation method(s):
+    - setup.py (Python package)
+    - requirements.txt (Python dependencies)
+
+[Shows installation progress...]
+```
 
 ---
 
@@ -256,9 +313,35 @@ python3 Fast-command-prompt-Short-version.py --download-dir ~/Downloads --downlo
 ```
 
 **Features:**
+- Shows download progress with progress bars
+- Displays file information (URL, filename, target path, size)
 - Automatically makes `.sh` and `.py` files executable
 - Uses `wget` or `curl` (whichever is available)
 - Saves to `./downloads` by default
+
+**Output Example:**
+```
+============================================================
+[*] Download Mode
+[*] Files will be saved to: /path/to/downloads
+============================================================
+
+[*] Downloading file
+[*] URL: https://example.com/install.sh
+[*] Filename: install.sh
+[*] Target: /path/to/downloads/install.sh
+============================================================
+
+[Shows download progress bar...]
+
+============================================================
+[+] File successfully downloaded!
+[+] Location: /path/to/downloads/install.sh
+[+] Size: 15.23 KB
+============================================================
+
+[*] Detected script file, making executable...
+```
 
 ---
 
@@ -271,6 +354,13 @@ python3 Fast-command-prompt-Short-version.py -src /path/to/project
 ```
 
 The tool will automatically detect and use the appropriate installation method.
+
+**What you'll see:**
+- Scanning process with detected files
+- List of all found installation methods
+- Step-by-step installation progress
+- Detailed output for each command
+- Success/failure status for each step
 
 ---
 
@@ -286,6 +376,62 @@ python3 Fast-command-prompt-Short-version.py -ch file1.sh file2.py
 ```bash
 python3 Fast-command-prompt-Short-version.py --shutdown
 python3 Fast-command-prompt-Short-version.py -sh
+```
+
+---
+
+## 📊 Output & Display Features
+
+### Real-time Output
+All commands show their output in real-time. You'll see:
+- Command being executed
+- Working directory
+- Progress indicators
+- All stdout/stderr output
+- Success/failure messages
+
+### Program Header
+When you run the tool, you'll see:
+```
+============================================================
+               Fast Command Prompt
+          System Management Tool
+============================================================
+[*] Python version: 3.9.0
+[*] Working directory: /home/user
+[*] User: user
+============================================================
+
+[*] Starting 3 operation(s)...
+```
+
+### Operation Details
+Each operation shows:
+```
+============================================================
+[*] Installing package(s): nginx python3-pip...
+============================================================
+[>] Command: apt install -y nginx python3-pip
+[>] Working directory: /home/user
+------------------------------------------------------------
+
+[Shows apt output in real-time...]
+
+============================================================
+[+] Success: Installing package(s): nginx python3-pip
+============================================================
+```
+
+### Operation Summary
+At the end, you'll see:
+```
+============================================================
+                    OPERATION SUMMARY
+============================================================
+[*] Total operations: 3
+[+] Status: All operations completed successfully
+[+] Result: SUCCESS
+============================================================
 ```
 
 ---
@@ -487,7 +633,6 @@ If you encounter any issues or have questions:
 1. Check the [Troubleshooting](#troubleshooting) section
 2. Review the examples in this README
 3. Open an issue on GitHub
-4. **[Contact me on Telegram](https://github.com/Glitch01110).**
 
 ---
 
@@ -496,6 +641,14 @@ If you encounter any issues or have questions:
 - **v1.0.0**: Initial release with basic APT management
 - **v2.0.0**: Added GitHub integration and source installation
 - **v2.1.0**: Added file downloads and multiple package managers
+- **v2.2.0**: **NEW!** Real-time output display
+  - Live command output during execution
+  - Detailed progress information
+  - Repository and file size display
+  - Installation method detection display
+  - Program header with system info
+  - Operation summary at completion
+  - Enhanced error messages with context
 
 ---
 
@@ -508,10 +661,13 @@ If you encounter any issues or have questions:
 - 📁 الملفات المحمولة تُحفظ في `./downloads` افتراضياً
 - 🐙 المستودعات المحملة تُحفظ في `./repos` افتراضياً
 - ✅ الأداة توفر رسائل واضحة عن نجاح أو فشل كل عملية
+- 📊 **جميع المخرجات تظهر في الوقت الفعلي أثناء التنفيذ**
+- 📝 **رسائل تفصيلية لكل عملية مع معلومات كاملة**
+- 📈 **معلومات التقدم والحالة لكل خطوة**
+- 📋 **ملخص شامل في نهاية التنفيذ**
 
 </div>
 
 ---
 
 **Made with ❤️ for faster system management**
-
