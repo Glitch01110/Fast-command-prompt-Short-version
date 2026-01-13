@@ -37,6 +37,7 @@
   - [Source Code Installation](#source-code-installation)
   - [System Operations](#system-operations)
 - [Output & Display Features](#-output--display-features)
+- [Kali Linux Support](#-kali-linux-support)
 - [Examples](#examples)
 - [Advanced Usage](#advanced-usage)
 - [Troubleshooting](#troubleshooting)
@@ -49,11 +50,13 @@
 
 ### 🔧 System Management
 - Update package lists
-- Upgrade system packages
+- Upgrade system packages (supports both `apt full-upgrade` and `apt upgrade`)
 - Install/remove packages
 - Auto-remove unnecessary packages
 - Auto-clean package cache
 - System shutdown
+- **Automatic sudo detection**: Adds `sudo` automatically when needed
+- **Kali Linux support**: Optimized for Kali Linux compatibility
 
 ### 📦 Multiple Installation Methods
 - **APT**: Standard Debian/Ubuntu packages
@@ -108,12 +111,12 @@ Automatically detects and installs from:
 ## 📋 Requirements
 
 - **Python**: 3.6 or higher
-- **Operating System**: Linux (Debian/Ubuntu based)
+- **Operating System**: Linux (Debian/Ubuntu/Kali Linux based)
 - **Dependencies**:
   - `git` (for GitHub cloning)
   - `wget` or `curl` (for file downloads)
   - `apt` (for package management)
-  - `sudo` (for system operations)
+  - `sudo` (for system operations - automatically added when needed)
 
 ### Optional Dependencies
 - `snapd` (for snap packages)
@@ -170,6 +173,12 @@ python3 Fast-command-prompt-Short-version.py --upgrade
 # or short form
 python3 Fast-command-prompt-Short-version.py -ug
 ```
+
+**Note:** 
+- Automatically tries `apt full-upgrade` first
+- Falls back to `apt upgrade` if `full-upgrade` is not available (useful for older Kali Linux versions)
+- Automatically adds `sudo` when needed
+- Works seamlessly on Kali Linux
 
 #### Install Packages
 ```bash
@@ -400,10 +409,14 @@ When you run the tool, you'll see:
 [*] Python version: 3.9.0
 [*] Working directory: /home/user
 [*] User: user
+[*] Running as: user
+[*] Note: Some commands will use 'sudo' when needed
 ============================================================
 
 [*] Starting 3 operation(s)...
 ```
+
+**Note:** The tool automatically detects if you're running as root or need sudo privileges.
 
 ### Operation Details
 Each operation shows:
@@ -411,7 +424,7 @@ Each operation shows:
 ============================================================
 [*] Installing package(s): nginx python3-pip...
 ============================================================
-[>] Command: apt install -y nginx python3-pip
+[>] Command: sudo apt install -y nginx python3-pip
 [>] Working directory: /home/user
 ------------------------------------------------------------
 
@@ -421,6 +434,8 @@ Each operation shows:
 [+] Success: Installing package(s): nginx python3-pip
 ============================================================
 ```
+
+**Note:** Commands that require root privileges automatically include `sudo` when you're not running as root.
 
 ### Operation Summary
 At the end, you'll see:
@@ -433,6 +448,40 @@ At the end, you'll see:
 [+] Result: SUCCESS
 ============================================================
 ```
+
+---
+
+## 🐧 Kali Linux Support
+
+### Automatic Sudo Detection
+The tool automatically detects if you're running as root or need sudo privileges:
+- **As root**: Commands run directly without sudo
+- **As user**: Commands automatically include `sudo` when needed
+- **No manual intervention**: You don't need to add `sudo` yourself
+
+### Smart Upgrade Handling
+On Kali Linux, the upgrade command is smart:
+1. First tries `apt full-upgrade` (for newer Kali versions)
+2. If that fails, automatically falls back to `apt upgrade` (for older versions)
+3. Works on all Kali Linux versions without configuration
+
+### Example Usage on Kali Linux
+```bash
+# Works perfectly on Kali Linux - no sudo needed in command
+python3 Fast-command-prompt-Short-version.py -ug
+
+# The tool automatically:
+# 1. Detects you're not root
+# 2. Adds sudo to the command
+# 3. Tries full-upgrade first
+# 4. Falls back to upgrade if needed
+```
+
+### Compatibility
+- ✅ Kali Linux (all versions)
+- ✅ Ubuntu (all versions)
+- ✅ Debian (all versions)
+- ✅ All Debian-based distributions
 
 ---
 
@@ -544,15 +593,25 @@ sudo apt install git wget curl
 
 ### Issue: Permission denied errors
 
-**Solution:** Some operations require sudo. The tool will prompt when needed, or run with sudo:
-```bash
-sudo python3 Fast-command-prompt-Short-version.py --upgrade
-```
+**Solution:** The tool automatically adds `sudo` when needed. However, if you still encounter issues:
+- Make sure your user has sudo privileges
+- You can run the script with sudo if needed: `sudo python3 Fast-command-prompt-Short-version.py --upgrade`
+- Or run as root: `sudo su` then run the script
+
+**Note:** The tool automatically detects root privileges and adjusts commands accordingly.
+
+### Issue: Upgrade fails on Kali Linux
+
+**Solution:** The tool automatically handles this:
+- First tries `apt full-upgrade`
+- If that fails, automatically falls back to `apt upgrade`
+- Works on all Kali Linux versions (old and new)
+- Automatically adds `sudo` when needed
 
 ### Issue: GitHub clone fails
 
 **Possible causes:**
-- Git not installed: `sudo apt install git`
+- Git not installed: `sudo apt install git` (or use the tool: `python3 Fast-command-prompt-Short-version.py -i git`)
 - Network issues: Check internet connection
 - Repository doesn't exist: Verify the URL
 
@@ -641,7 +700,7 @@ If you encounter any issues or have questions:
 - **v1.0.0**: Initial release with basic APT management
 - **v2.0.0**: Added GitHub integration and source installation
 - **v2.1.0**: Added file downloads and multiple package managers
-- **v2.2.0**: **NEW!** Real-time output display
+- **v2.2.0**: Real-time output display
   - Live command output during execution
   - Detailed progress information
   - Repository and file size display
@@ -649,6 +708,13 @@ If you encounter any issues or have questions:
   - Program header with system info
   - Operation summary at completion
   - Enhanced error messages with context
+- **v2.3.0**: **NEW!** Kali Linux Support & Auto Sudo
+  - Automatic sudo detection and addition
+  - Full Kali Linux compatibility
+  - Smart upgrade fallback (full-upgrade → upgrade)
+  - Root privilege detection
+  - Improved error handling for permission issues
+  - Works seamlessly on all Debian-based distributions
 
 ---
 
@@ -656,7 +722,7 @@ If you encounter any issues or have questions:
 
 ## 📌 ملاحظات مهمة
 
-- ⚠️ بعض الأوامر تتطلب صلاحيات `sudo`
+- ⚠️ بعض الأوامر تتطلب صلاحيات `sudo` - **يتم إضافتها تلقائياً**
 - 🔒 الأداة تستخدم تنفيذ آمن للأوامر (بدون `shell=True`)
 - 📁 الملفات المحمولة تُحفظ في `./downloads` افتراضياً
 - 🐙 المستودعات المحملة تُحفظ في `./repos` افتراضياً
@@ -665,6 +731,9 @@ If you encounter any issues or have questions:
 - 📝 **رسائل تفصيلية لكل عملية مع معلومات كاملة**
 - 📈 **معلومات التقدم والحالة لكل خطوة**
 - 📋 **ملخص شامل في نهاية التنفيذ**
+- 🐧 **دعم كامل لـ Kali Linux** - يعمل بشكل مثالي على جميع إصدارات Kali
+- 🔐 **كشف تلقائي للصلاحيات** - يضيف sudo تلقائياً عند الحاجة
+- 🔄 **ترقية ذكية** - يحاول full-upgrade أولاً ثم upgrade كبديل
 
 </div>
 

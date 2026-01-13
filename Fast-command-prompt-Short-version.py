@@ -13,6 +13,30 @@ import urllib.parse
 from pathlib import Path
 
 
+def is_root():
+    """Check if running as root."""
+    return os.geteuid() == 0
+
+
+def needs_sudo(command):
+    """Check if command needs sudo privileges."""
+    sudo_commands = [
+        'apt', 'dpkg', 'snap', 'flatpak', 
+        'shutdown', 'make install', 'cmake'
+    ]
+    return any(cmd in ' '.join(command) for cmd in sudo_commands)
+
+
+def get_apt_command(base_command):
+    """Get apt command with appropriate privileges."""
+    if is_root():
+        return base_command
+    elif needs_sudo(base_command):
+        return ['sudo'] + base_command
+    else:
+        return base_command
+
+
 def run_command(command, description="", cwd=None, show_output=True):
     """Execute a command safely and handle errors with real-time output."""
     try:
@@ -27,11 +51,18 @@ def run_command(command, description="", cwd=None, show_output=True):
         
         # Show output in real-time
         if show_output:
+            # For sudo commands, preserve environment variables
+            env = os.environ.copy()
+            if command[0] == 'sudo' and 'SUDO_USER' in env:
+                # Preserve PATH and other important vars
+                env['PATH'] = os.environ.get('PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin')
+            
             result = subprocess.run(
                 command,
                 check=True,
                 text=True,
-                cwd=cwd
+                cwd=cwd,
+                env=env
             )
         else:
             # For commands that need captured output
@@ -252,7 +283,10 @@ def print_header():
     print("="*60)
     print(f"[*] Python version: {sys.version.split()[0]}")
     print(f"[*] Working directory: {os.getcwd()}")
-    print(f"[*] User: {os.getenv('USER', 'Unknown')}")
+    print(f"[*] User: {os.getenv('USER', os.getenv('SUDO_USER', 'Unknown'))}")
+    print(f"[*] Running as: {'root' if is_root() else 'user'}")
+    if not is_root():
+        print(f"[*] Note: Some commands will use 'sudo' when needed")
     print("="*60 + "\n")
 
 
@@ -406,20 +440,31 @@ def main():
     # Execute commands only if their options are provided
     if args.update:
         success &= run_command(
-            ["apt", "update"],
+            get_apt_command(["apt", "update"]),
             "Updating package list"
         )
     
     if args.upgrade:
-        success &= run_command(
-            ["apt", "full-upgrade", "-y"],
-            "Upgrading system packages"
+        # Try apt full-upgrade first, if fails try apt upgrade (for older systems)
+        upgrade_cmd = get_apt_command(["apt", "full-upgrade", "-y"])
+        success_upgrade = run_command(
+            upgrade_cmd,
+            "Upgrading system packages (full-upgrade)"
         )
+        if not success_upgrade:
+            # Fallback to regular upgrade for systems that don't support full-upgrade
+            print(f"[*] full-upgrade failed, trying regular upgrade...")
+            success &= run_command(
+                get_apt_command(["apt", "upgrade", "-y"]),
+                "Upgrading system packages (upgrade)"
+            )
+        else:
+            success &= success_upgrade
     
     if args.install:
         packages = " ".join(args.install)
         success &= run_command(
-            ["apt", "install", "-y"] + args.install,
+            get_apt_command(["apt", "install", "-y"] + args.install),
             f"Installing package(s): {packages}"
         )
     
@@ -431,10 +476,10 @@ def main():
         print(f"[*] Steps: Update → Install")
         print(f"{'#'*60}\n")
         # Update first
-        if run_command(["apt", "update"], "Updating package list"):
+        if run_command(get_apt_command(["apt", "update"]), "Updating package list"):
             # Then install
             success &= run_command(
-                ["apt", "install", "-y"] + args.auto_install,
+                get_apt_command(["apt", "install", "-y"] + args.auto_install),
                 f"Installing package(s): {packages}"
             )
         else:
@@ -443,19 +488,19 @@ def main():
     if args.remove:
         packages = " ".join(args.remove)
         success &= run_command(
-            ["apt", "remove", "-y"] + args.remove,
+            get_apt_command(["apt", "remove", "-y"] + args.remove),
             f"Removing package(s): {packages}"
         )
     
     if args.autoremove:
         success &= run_command(
-            ["apt", "autoremove", "-y"],
+            get_apt_command(["apt", "autoremove", "-y"]),
             "Autoremoving unnecessary packages"
         )
     
     if args.autoclean:
         success &= run_command(
-            ["apt", "autoclean"],
+            get_apt_command(["apt", "autoclean"]),
             "Autocleaning unnecessary packages"
         )
     
@@ -479,7 +524,7 @@ def main():
                 )
                 # Fix dependencies if needed
                 run_command(
-                    ["apt", "install", "-f", "-y"],
+                    get_apt_command(["apt", "install", "-f", "-y"]),
                     "Fixing dependencies"
                 )
             else:
