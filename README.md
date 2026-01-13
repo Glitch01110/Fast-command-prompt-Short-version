@@ -484,7 +484,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## 📞 Support
 
 If you encounter any issues or have questions:
-1. Check the [Troubleshooting](#troubleshooting) section
+1. Check the [Troubleshooting](https://github.com/Glitch01110) section
 2. Review the examples in this README
 3. Open an issue on GitHub
 
@@ -513,3 +513,4 @@ If you encounter any issues or have questions:
 ---
 
 **Made with ❤️ for faster system management**
+
